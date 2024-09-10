@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from "react";
 import socket from "./socket";  // Ensure the correct path to your socket.js file
+import MessageBubble from "./MessageBubble";
 
 const ChatComponent = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
+  const [newChannel, setNewChannel] = useState("");
   const [channelName, setChannelName] = useState("lobby");
+  const [channel, setChannel] = useState(null);
 
   useEffect(() => {
-    // Join the channel
-    let channel = socket.channel(`testing_channel:${channelName}`, {});
 
-    channel.join()
+    if (channel) {
+      channel.leave();
+    }
+
+    // Join the channel
+    const newChannel = socket.channel(`testing_channel:${channelName}`, {});
+
+    newChannel.join()
       .receive("ok", response => {
         console.log("Joined successfully", response);
       })
@@ -18,22 +26,31 @@ const ChatComponent = () => {
         console.log("Unable to join", response);
       });
 
-    // Handle incoming messages
-    channel.on("new_msg", payload => {
+    newChannel.on("new_msg", payload => {
       setMessages(messages => [...messages, payload.message]);
     });
 
+    setChannel(newChannel);
+
     // Cleanup on component unmount
     return () => {
-      channel.leave();
+      if (channel) {
+        channel.leave();
+      }
     };
   }, [channelName]);
 
   const sendMessage = () => {
-    if (message.trim() !== "") {
-      let channel = socket.channels.find(ch => ch.topic === `testing_channel:${channelName}`);
+    if (message.trim() !== "" && channel) {
       channel.push("new_msg", { message });
       setMessage("");
+    }
+  };
+
+  const handleChannelChange = () => {
+    if (newChannel.trim() !== "") {
+      setChannelName(newChannel.trim());
+      setNewChannel("");  // Clear the input field
     }
   };
 
@@ -45,23 +62,39 @@ const ChatComponent = () => {
   };
 
   return (
-    <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", background: "red" }}>
-      <div>Channel: <b>{channelName}</b></div>
-      <div style={{ flex: 1, overflowY: "auto", background: "blue" }}>
-        {messages.reverse().map((msg, index) => (
-          <p key={index}>{msg}</p>
+    <div style={{ padding: "2rem", display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <p>Connected to channel:</p>
+        <b>{channelName}</b>
+        <input
+          type="text"
+          value={newChannel}
+          onChange={(e) => setNewChannel(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a new channel..."
+          style={{ marginRight: "1rem" }}
+        />
+        <button style={{ height: "2rem" }} onClick={handleChannelChange}>Set channel</button>
+      </div>
+      <div style={{ maxHeight: "30dvh", flex: 1, overflowY: "hidden", background: "white" }}>
+        {messages.slice().reverse().map((msg, index) => (
+          <MessageBubble key={index} message={msg} isSentByUser={""}>{msg}</MessageBubble>
         ))}
       </div>
-      <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Type a message..."
-      />
-      <button onClick={sendMessage}>Send</button>
-    </div >
+      <div>
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message..."
+          style={{ marginRight: "1rem" }}
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
+    </div>
   );
+
 };
 
 export default ChatComponent;
