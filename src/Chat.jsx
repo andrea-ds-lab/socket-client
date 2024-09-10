@@ -64,7 +64,7 @@ const ChatComponent = () => {
   };
 
   return (
-    <div style={{ padding: "2rem", display: "flex", flexDirection: "column", background: "#2E3532" }}>
+    <div style={{ padding: "2rem", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <p>Connected to channel:</p>
         <b>{channelName}</b>
@@ -78,9 +78,9 @@ const ChatComponent = () => {
         />
         <button style={{ height: "2rem" }} onClick={handleChannelChange}>Set channel</button>
       </div>
-      <div style={{ maxHeight: "30dvh", flex: 1, overflowY: "hidden", background: "white" }}>
+      <div style={{ maxHeight: "30dvh", flex: 1, overflowY: "hidden" }}>
         {messages.slice().reverse().map((msg, index) => (
-          <MessageBubble key={index} message={msg} isSentByUser={""}>{msg}</MessageBubble>
+          <MessageBubble key={index} message={msg} isSentByUser={Math.random() < 0.5}>{msg}</MessageBubble>
         ))}
       </div>
       <div>
