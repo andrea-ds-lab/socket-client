@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import socket from "./socket";  // Ensure the correct path to your socket.js file
 import MessageBubble from "./MessageBubble";
+import './css/theme.css';  // Import the theme.css file
+
 
 const ChatComponent = () => {
   const [messages, setMessages] = useState([]);
@@ -62,7 +64,7 @@ const ChatComponent = () => {
   };
 
   return (
-    <div style={{ padding: "2rem", display: "flex", flexDirection: "column" }}>
+    <div style={{ padding: "2rem", display: "flex", flexDirection: "column", background: "#2E3532" }}>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <p>Connected to channel:</p>
         <b>{channelName}</b>
